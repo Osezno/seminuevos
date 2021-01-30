@@ -2,6 +2,10 @@ const express = require('express')
 const port = 3000
 const bodyParser = require('body-parser')
 const app = express()
+var cors = require('cors')
+
+
+app.use(cors())
 //controllers
 
 const upload = require('./controllers/UploadController.js');

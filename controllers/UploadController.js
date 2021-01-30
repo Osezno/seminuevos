@@ -5,18 +5,22 @@ const puppeteer = require('puppeteer');
 const c = require('../constants');
 const v = require('../validations');
 const path = require('path');
+const fs = require('fs');
 
 const validation = (precio, descripcion) => {
   if (v.checkNull(precio) || v.checkNull(descripcion)) {
+
     c.resMessage['success'] = true
     return c.resMessage
   }
   if (v.checkLength(precio, 1, 7)) {
+
     c.resMessage['success'] = true
     c.resMessage[c.errors.precio]
     return c.resMessage
   }
   if (v.checkLength(descripcion, 10, 400)) {
+    c.resMessage['success'] = true
     c.resMessage[c.errors.descripcion]
   }
   return c.resMessage
@@ -32,6 +36,7 @@ const selectorStr = (str, bool) => {
 
 router.post('/', async (req, res) => {
   const { precio, descripcion } = req.body
+  console.log(precio, descripcion, req.body)
   const {
     url,
     uSelector,
@@ -51,6 +56,7 @@ router.post('/', async (req, res) => {
   let valid = await validation(precio, descripcion)
 
   if (valid.success) {
+
     return res.send(valid.message);
   } else {
     const browser = await puppeteer.launch();
@@ -119,16 +125,18 @@ router.post('/', async (req, res) => {
         await delay(c.bigDelay);
         await page.screenshot({ path: path.join(__dirname, `../.tmp/seminuevos.png`) });
         await browser.close();
+        var mime = 'image/png';
+        var encoding = 'base64';
+        var data = fs.readFileSync(path.join(__dirname, `../.tmp/seminuevos.png`)).toString(encoding);
+        var uri = 'data:' + mime + ';' + encoding + ',' + data;
+        c.resMessage["data"] = uri
+        c.resMessage["success"] = true
+        return res.send(c.resMessage);
 
-        let fileURL = path.join(__dirname, `../.tmp/seminuevos.png`)
-        console.log(fileURL)
-        return res.sendFile(fileURL);
       }
-
     } else {
-
       c.resMessage['message'] = c.errors.serverError
-      return res.send(resMessage);
+      return res.send(c.resMessage);
 
     }
   }
